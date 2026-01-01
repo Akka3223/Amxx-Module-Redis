@@ -14,12 +14,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-18.04
             os_short: linux
           - os: windows-2022
             os_short: windows
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    container:
+      image: debian:buster
     name: ${{ matrix.os_short }}-build
     env:
       DEPENDENCIES_FOLDER: dependencies
