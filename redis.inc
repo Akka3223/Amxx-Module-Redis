@@ -57,7 +57,7 @@ native redis_set_string(const key[], const value[], const ttl = 0, const type = 
  * 
  * @return	0 is success. -1 is error.
  */
-native redis_set_integer(const key[], const value[], const ttl = 0, const type = 0, const keepttl = 0);
+native redis_set_integer(const key[], const value, const ttl = 0, const type = 0, const keepttl = 0);
 
 /*
  * @note	Use the `GET` command to read values into the Redis server. (for string)
