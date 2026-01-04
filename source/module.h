@@ -4,7 +4,7 @@
 #include "amxxsdk/amxxmodule.h"
 #include "sw/redis++/redis++.h"
 
-#define DEBUG_LOGGING 0
+#define DEBUG_LOGGING 1
 
 using namespace sw::redis;
 
