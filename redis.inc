@@ -30,20 +30,34 @@ native redis_register_subscriber(const channel[]);
  * 
  * @param	key[]		key name.
  * @param	value[]		value of string.
+ * @param   ttl         Optional time-to-live in seconds. Default = 0 (no TTL).
+ * @param   type        Optional update type:
+ *                      0 = ALWAYS: overwrite the key regardless of existence (default)
+ *                      1 = NX    : set only if key does NOT exist
+ *                      2 = XX    : set only if key already exists
+ * @param   keepttl     Optional flag. If non-zero, keeps the existing TTL on the key
+ *                      instead of overwriting it. Default = 0 (ignore)
  * 
  * @return	0 is success. -1 is error.
  */
-native redis_set_string(const key[], const value[]);
+native redis_set_string(const key[], const value[], const ttl = 0, const type = 0, const keepttl = 0);
 
 /*
  * @note	Use the `SET` command to write values to the Redis server. (for integer)
  * 
  * @param	key[]		key name.
  * @param	value		value of integer.
+ * @param   ttl         Optional time-to-live in seconds. Default = 0 (no TTL).
+ * @param   type        Optional update type:
+ *                      0 = ALWAYS: overwrite the key regardless of existence (default)
+ *                      1 = NX    : set only if key does NOT exist
+ *                      2 = XX    : set only if key already exists
+ * @param   keepttl     Optional flag. If non-zero, keeps the existing TTL on the key
+ *                      instead of overwriting it. Default = 0 (ignore)
  * 
  * @return	0 is success. -1 is error.
  */
-native redis_set_integer(const key[], const value);
+native redis_set_integer(const key[], const value[], const ttl = 0, const type = 0, const keepttl = 0);
 
 /*
  * @note	Use the `GET` command to read values into the Redis server. (for string)
