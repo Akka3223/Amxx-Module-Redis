@@ -60,9 +60,6 @@ cell redis_start_subscribe(AMX* amx, cell* params)
 #endif
 		return -1;
 	}
-	sub->on_message([](std::string channel, std::string msg) {
-		MF_ExecuteForward(ForwardRedisOnMessage, channel.c_str(), msg.c_str());
-	});
 
 	for (auto& ch : channels) {
 		sub->subscribe(ch);

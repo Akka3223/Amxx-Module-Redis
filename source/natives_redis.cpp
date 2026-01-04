@@ -47,6 +47,15 @@ cell redis_connect(AMX *amx, cell *params)
 			g_subscriber_options.socket_timeout = std::chrono::milliseconds(300);
 			g_subscriber_redis = new Redis(g_subscriber_options);
 			sub = new Subscriber(g_subscriber_redis->subscriber());
+
+			// Set callback functions.
+			sub->on_message([](std::string channel, std::string msg) {
+#if DEBUG_LOGGING
+				MF_Log("[REDIS:DEBUG] ON_MESSAGE: channel='%s', message='%s'", channel.c_str(), msg.c_str());
+#endif
+				// Process message of MESSAGE type.
+				MF_ExecuteForward(ForwardRedisOnMessage, channel.c_str(), msg.c_str());
+			});
 		}
 
     } catch (const Error &e) {
