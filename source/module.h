@@ -11,6 +11,8 @@ using namespace sw::redis;
 extern AMX_NATIVE_INFO g_natives[];
 extern Redis* g_redis;
 extern Redis* g_subscriber_redis;
+extern ConnectionOptions g_connection_options;
+
 extern bool isSubscriberRunning;
 
 extern int ForwardRedisOnMessage;
@@ -41,7 +43,9 @@ extern cell redis_hset_integer(AMX *amx, cell *params);
 extern cell redis_publish(AMX* amx, cell* params);
 
 extern cell redis_register_subscriber(AMX* amx, cell* params);
-extern cell redis_start_subscribe(AMX* amx, cell* params);
+
+extern cell redis_start_subscribe(bool hasOnMessage);
+extern cell redis_register_subscriber_forward(bool hasOnMessage);
 
 extern bool UTIL_CheckForPublic(const char* publicname);
 

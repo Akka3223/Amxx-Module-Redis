@@ -6,7 +6,6 @@ Redis* g_redis = NULL;
 Redis* g_subscriber_redis = NULL;
 
 ConnectionOptions g_connection_options;
-ConnectionOptions g_subscriber_options;
 sw::redis::Subscriber *sub;
 
 const char* convertToCString(const OptionalString& optStr) {
@@ -40,27 +39,10 @@ cell redis_connect(AMX *amx, cell *params)
     {
         g_redis = new Redis(g_connection_options);
 
-		if (HasRedisOnMessage) 
-		{
-			channels.clear();
-			g_subscriber_options = g_connection_options;
-			g_subscriber_options.socket_timeout = std::chrono::milliseconds(300);
-			g_subscriber_redis = new Redis(g_subscriber_options);
-			sub = new Subscriber(g_subscriber_redis->subscriber());
-
-			// Set callback functions.
-			sub->on_message([](std::string channel, std::string msg) {
-#if DEBUG_LOGGING
-				MF_Log("[REDIS:DEBUG] ON_MESSAGE: channel='%s', message='%s'", channel.c_str(), msg.c_str());
-#endif
-				// Process message of MESSAGE type.
-				MF_ExecuteForward(ForwardRedisOnMessage, channel.c_str(), msg.c_str());
-			});
-		}
-
     } catch (const Error &e) {
 		MF_LogError(amx, AMX_ERR_NATIVE, "Redis Connecting Error.");
         return -1;
     }
     return 0;
 }
+
