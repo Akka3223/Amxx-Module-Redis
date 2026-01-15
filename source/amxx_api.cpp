@@ -12,6 +12,12 @@ void OnPluginsLoaded()
 	isSubscriberRunning = false;
 	ForwardRedisOnMessage = MF_RegisterForward("Redis_Subscriber_OnMessage", ET_STOP, FP_STRING, FP_STRING, FP_DONE);
 	HasRedisOnMessage = UTIL_CheckForPublic("Redis_Subscriber_OnMessage");
+
+	if (g_redis)
+	{
+		redis_register_subscriber_forward(HasRedisOnMessage);
+		redis_start_subscribe(HasRedisOnMessage);
+	}
 }
 
 void stop_subscribe()

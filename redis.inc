@@ -12,6 +12,8 @@
  * @param	username[]	Username specified for the Redis server. (Default: blank)
  * @param	password[]	Password specified for the Redis server. (Default: blank)
  * 
+ * @note	Execute within the `plugin_init` function.
+ * 
  * @return	0 is success. -1 is error.
  */
 native redis_connect(const hostip[], const port = 6379, const username[] = "", const password[] = "");
@@ -20,6 +22,9 @@ native redis_connect(const hostip[], const port = 6379, const username[] = "", c
  * @note	When using the Pub/Sub command, register a subscriber channel.
  * 
  * @param	channel[]	Specified channel name.
+ * 
+ * @note	Execute within the `plugin_init` function. 
+ *			Also, execute after the `redis_connect` function.
  * 
  * @return	0 is success. -1 is error.
  */
@@ -152,15 +157,6 @@ native redis_hdel_field(const key[], const field[]);
  * @return	0 is success. -1 is error.
  */
 native redis_publish(const channel[], const message[]);
-
-/*
- * @note	When you want to receive messages from a Redis server using the PUB/SUB commands 
- *			After registering the channel with redis_register_subscriber, execute this function.
- *			It waits for messages in the background.
- *
- * @return	0 is success. -1 is error.
- */
-native redis_start_subscribe();
 
 /*
  * @note	When a message is received via the PUB/SUB command, this function is called as a callback.
