@@ -9,7 +9,16 @@ cell redis_delete_key(AMX *amx, cell *params)
 	std::string key = MF_GetAmxString(amx, params[1], 0, &len);
 
 	if (g_redis != NULL)
-		g_redis->del(key);
+	{
+		try
+		{
+			g_redis->del(key);
+		}
+		catch (const Error&)
+		{
+			return -1;
+		}
+	}
 	else
 		return -1;
 
@@ -24,7 +33,16 @@ cell redis_hdelete_field(AMX *amx, cell *params)
 	std::string field = MF_GetAmxString(amx, params[2], 1, &len);
 
 	if (g_redis != NULL)
-		g_redis->hdel(key, field);
+	{
+		try
+		{
+			g_redis->hdel(key, field);
+		}
+		catch (const Error&)
+		{
+			return -1;
+		}
+	}
 	else
 		return -1;
 

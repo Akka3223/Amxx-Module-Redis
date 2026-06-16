@@ -10,7 +10,8 @@ void OnAmxxAttach()
 void OnPluginsLoaded()
 {
 	isSubscriberRunning = false;
-	ForwardRedisOnMessage = MF_RegisterForward("Redis_Subscriber_OnMessage", ET_STOP, FP_STRING, FP_STRING, FP_DONE);
+	ForwardRedisOnMessage = MF_RegisterForward("Redis_Subscriber_OnMessage",
+		ET_STOP, FP_STRING, FP_STRING, FP_DONE);
 	HasRedisOnMessage = UTIL_CheckForPublic("Redis_Subscriber_OnMessage");
 
 	if (g_redis)
@@ -24,17 +25,32 @@ void stop_subscribe()
 {
 	isSubscriberRunning = false;
 
-	if (th_subscriber && th_subscriber->joinable()) {
-		th_subscriber->join();
+	if (th_subscriber)
+	{
+		if (th_subscriber->joinable())
+		{
+			th_subscriber->join();
+		}
+		delete th_subscriber;
+		th_subscriber = nullptr;
 	}
 
-	if (sub) {
-		sub->unsubscribe();
+	if (sub)
+	{
+		try
+		{
+			sub->unsubscribe();
+		}
+		catch (const Error&)
+		{
+		}
+
 		delete sub;
 		sub = nullptr;
 	}
 
-	if (g_subscriber_redis) {
+	if (g_subscriber_redis)
+	{
 		delete g_subscriber_redis;
 		g_subscriber_redis = nullptr;
 	}
@@ -43,11 +59,19 @@ void stop_subscribe()
 void OnPluginsUnloaded()
 {
 	stop_subscribe();
-
 	channels.clear();
-	g_redis->bgsave();
 
-	delete g_redis;
-	g_redis = nullptr;
+	if (g_redis)
+	{
+		try
+		{
+			g_redis->bgsave();
+		}
+		catch (const Error&)
+		{
+		}
+
+		delete g_redis;
+		g_redis = nullptr;
+	}
 }
-

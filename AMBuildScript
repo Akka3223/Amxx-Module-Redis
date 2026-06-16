@@ -81,6 +81,7 @@ if cxx.like('gcc'):
     '-fPIC',
     '-m32',
     '-std=c++11',
+    '-g',
   ]
 
   cxx.cxxflags += [

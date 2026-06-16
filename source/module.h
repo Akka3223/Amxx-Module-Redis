@@ -4,6 +4,8 @@
 #include "amxxsdk/amxxmodule.h"
 #include "sw/redis++/redis++.h"
 
+#include <atomic>
+
 #define DEBUG_LOGGING 0
 
 using namespace sw::redis;
@@ -13,7 +15,7 @@ extern Redis* g_redis;
 extern Redis* g_subscriber_redis;
 extern ConnectionOptions g_connection_options;
 
-extern bool isSubscriberRunning;
+extern std::atomic<bool> isSubscriberRunning;
 
 extern int ForwardRedisOnMessage;
 extern int HasRedisOnMessage;
@@ -21,6 +23,8 @@ extern int HasRedisOnMessage;
 extern std::vector<std::string> channels;
 extern std::thread* th_subscriber;
 extern sw::redis::Subscriber* sub;
+
+extern void stop_subscribe();
 
 extern const char* convertToCString(const OptionalString& optStr);
 extern cell	redis_connect(AMX *amx, cell *params);
@@ -43,9 +47,8 @@ extern cell redis_hset_integer(AMX *amx, cell *params);
 extern cell redis_publish(AMX* amx, cell* params);
 
 extern cell redis_register_subscriber(AMX* amx, cell* params);
-
-extern cell redis_start_subscribe(bool hasOnMessage);
 extern cell redis_register_subscriber_forward(bool hasOnMessage);
+extern cell redis_start_subscribe(bool hasOnMessage);
 
 extern bool UTIL_CheckForPublic(const char* publicname);
 

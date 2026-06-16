@@ -10,7 +10,16 @@ cell redis_publish(AMX *amx, cell *params)
 	std::string message	  = MF_GetAmxString(amx, params[2], 1, &len);
 
 	if (g_redis != NULL)
-		g_redis->publish(channel, message);
+	{
+		try
+		{
+			g_redis->publish(channel, message);
+		}
+		catch (const Error&)
+		{
+			return -1;
+		}
+	}
 	else
 		return -1;
 

@@ -1,4 +1,5 @@
 #include "module.h"
+#include <string>
 
 using namespace sw::redis;
 
@@ -11,7 +12,16 @@ cell redis_hset_string(AMX *amx, cell *params)
 	std::string value = MF_GetAmxString(amx, params[3], 2, &len);
 
 	if (g_redis != NULL)
-		g_redis->hset(key, field, value);
+	{
+		try
+		{
+			g_redis->hset(key, field, value);
+		}
+		catch (const Error&)
+		{
+			return -1;
+		}
+	}
 	else
 		return -1;
 
@@ -27,10 +37,18 @@ cell redis_hset_integer(AMX *amx, cell *params)
 	int value = params[3];
 
 	if (g_redis != NULL)
-		g_redis->hset(key, field, std::to_string(value));
+	{
+		try
+		{
+			g_redis->hset(key, field, std::to_string(value));
+		}
+		catch (const Error&)
+		{
+			return -1;
+		}
+	}
 	else
 		return -1;
 
 	return 0;
 }
-

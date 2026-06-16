@@ -4,27 +4,44 @@ using namespace sw::redis;
 
 std::vector<std::string> channels;
 std::thread *th_subscriber = NULL;
-bool isSubscriberRunning = false;
+std::atomic<bool> isSubscriberRunning{false};
 ConnectionOptions g_subscriber_options;
 
 cell redis_register_subscriber_forward(bool hasOnMessage)
 {
 	if (hasOnMessage)
 	{
+		if (sub)
+		{
+			delete sub;
+			sub = nullptr;
+		}
+		if (g_subscriber_redis)
+		{
+			delete g_subscriber_redis;
+			g_subscriber_redis = nullptr;
+		}
+
 		channels.clear();
 		g_subscriber_options = g_connection_options;
 		g_subscriber_options.socket_timeout = std::chrono::milliseconds(300);
-		g_subscriber_redis = new Redis(g_subscriber_options);
-		sub = new Subscriber(g_subscriber_redis->subscriber());
 
-		// Set callback functions.
+		try
+		{
+			g_subscriber_redis = new Redis(g_subscriber_options);
+			sub = new Subscriber(g_subscriber_redis->subscriber());
+		}
+		catch (const Error&)
+		{
+			delete g_subscriber_redis;
+			g_subscriber_redis = nullptr;
+			return -1;
+		}
+
 		sub->on_message([](std::string channel, std::string msg) {
-#if DEBUG_LOGGING
-			MF_Log("[REDIS:DEBUG] ON_MESSAGE: channel='%s', message='%s'", channel.c_str(), msg.c_str());
-#endif
-			// Process message of MESSAGE type.
-			MF_ExecuteForward(ForwardRedisOnMessage, channel.c_str(), msg.c_str());
-			});
+			MF_ExecuteForward(ForwardRedisOnMessage,
+				channel.c_str(), msg.c_str());
+		});
 	}
 	return 0;
 }
@@ -32,8 +49,22 @@ cell redis_register_subscriber_forward(bool hasOnMessage)
 // native redis_subscribe(const channel[]);
 cell redis_register_subscriber(AMX *amx, cell *params)
 {
-	//if (!HasRedisOnMessage)
-	//	return -1;
+	if (!HasRedisOnMessage)
+		return -1;
+
+	if (isSubscriberRunning)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE,
+			"Cannot register channels while subscriber is running");
+		return -1;
+	}
+
+	if (sub == nullptr)
+	{
+		MF_LogError(amx, AMX_ERR_NATIVE,
+			"Subscriber not initialized; call redis_connect first");
+		return -1;
+	}
 
 	int len = 0;
 	std::string channel = MF_GetAmxString(amx, params[1], 0, &len);
@@ -50,8 +81,6 @@ cell redis_register_subscriber(AMX *amx, cell *params)
 
 void consumeThread()
 {
-	isSubscriberRunning = true;
-
 	while (isSubscriberRunning)
 	{
 		try
@@ -60,13 +89,11 @@ void consumeThread()
 		}
 		catch (const TimeoutError& e)
 		{
-			// Do nothing, as we expect a timeout, as we set socket_timeout.
-			LOG_CONSOLE(PLID, "[DEBUG] SUBSCRIBE TIMEOUT: %s", e.what());
 			continue;
 		}
 		catch (const Error& err)
 		{
-			LOG_CONSOLE(PLID, "[DEBUG] SUBSCRIBE ERROR: %s", err.what());
+			isSubscriberRunning = false;
 			return;
 		}
 	}
@@ -77,23 +104,31 @@ cell redis_start_subscribe(bool hasOnMessage)
 {
 	if (!hasOnMessage)
 	{
-		MF_Log("[WARN] NOT EXISTS FORWARD. EXIT.");
 		return -1;
 	}
 
-	if (channels.size() > 0)
+	if (isSubscriberRunning || th_subscriber != nullptr)
 	{
-		for (auto& ch : channels) {
-			sub->subscribe(ch);
-		}
+		return -1;
+	}
 
-		th_subscriber = new std::thread(consumeThread);
-	}
-	else 
+	if (sub == nullptr)
 	{
-		MF_Log("[WARN] NO REGISTED CHANNELS.");
+		return -1;
 	}
+
+	if (channels.empty())
+	{
+		return -1;
+	}
+
+	for (auto& ch : channels)
+	{
+		sub->subscribe(ch);
+	}
+
+	th_subscriber = new std::thread(consumeThread);
+	isSubscriberRunning = true;
 
 	return 0;
 }
-

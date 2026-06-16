@@ -1,4 +1,5 @@
 #include "module.h"
+#include <string>
 
 using namespace sw::redis;
 
@@ -16,25 +17,32 @@ cell redis_set_string(AMX *amx, cell *params)
 
     if (g_redis != nullptr)
     {
-        bool success = false;
+		try
+		{
+			bool success = false;
 
-        if (keepttl)
-        {
-            success = g_redis->set(key, value, keepttl, type);
-        }
-        else
-        {
-            success = g_redis->set(key, value, std::chrono::seconds(ttl), type);
-        }
+			if (keepttl)
+			{
+				success = g_redis->set(key, value, keepttl, type);
+			}
+			else
+			{
+				success = g_redis->set(key, value, std::chrono::seconds(ttl), type);
+			}
 
-        return success ? 0 : -1;
+			return success ? 0 : -1;
+		}
+		catch (const Error&)
+		{
+			return -1;
+		}
     }
 
     return -1;
 }
 
 
-// native redis_set_integer(const key[], const value[], const ttl = 0, const type = 0, const keepttl = 0);
+// native redis_set_integer(const key[], const value, const ttl = 0, const type = 0, const keepttl = 0);
 cell redis_set_integer(AMX *amx, cell *params)
 {
     int len = 0;
@@ -48,18 +56,25 @@ cell redis_set_integer(AMX *amx, cell *params)
 
     if (g_redis != nullptr)
     {
-        bool success = false;
+		try
+		{
+			bool success = false;
 
-        if (keepttl)
-        {
-            success = g_redis->set(key, std::to_string(value), keepttl, type);
-        }
-        else
-        {
-            success = g_redis->set(key, std::to_string(value), std::chrono::seconds(ttl), type);
-        }
+			if (keepttl)
+			{
+				success = g_redis->set(key, std::to_string(value), keepttl, type);
+			}
+			else
+			{
+				success = g_redis->set(key, std::to_string(value), std::chrono::seconds(ttl), type);
+			}
 
-        return success ? 0 : -1;
+			return success ? 0 : -1;
+		}
+		catch (const Error&)
+		{
+			return -1;
+		}
     }
 
     return -1;
